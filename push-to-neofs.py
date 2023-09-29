@@ -40,17 +40,6 @@ def change_root_dir_to_container_id(root_directory: str, current_directory: str,
         │   └── test-cases
         ├── export
         ├── history
-        ├── plugins
-        │   ├── behaviors
-        │   ├── jira
-        │   ├── junit
-        │   ├── packages
-        │   ├── screen-diff
-        │   ├── trx
-        │   ├── xctest
-        │   ├── xray
-        │   └── xunit-xml
-        └── widgets
     And
         Container ID is HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6
         Run ID is 832-1695916423
@@ -61,17 +50,6 @@ def change_root_dir_to_container_id(root_directory: str, current_directory: str,
         │   └── test-cases
         ├── export
         ├── history
-        ├── plugins
-        │   ├── behaviors
-        │   ├── jira
-        │   ├── junit
-        │   ├── packages
-        │   ├── screen-diff
-        │   ├── trx
-        │   ├── xctest
-        │   ├── xray
-        │   └── xunit-xml
-        └── widgets
     And the static page will be available at the link:
     https://http.fs.neo.org/HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6/832-1695916423/data/__files__
     https://http.fs.neo.org/HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6/832-1695916423/data/attachments/__files__
