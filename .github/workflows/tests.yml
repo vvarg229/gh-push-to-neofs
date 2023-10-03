@@ -29,7 +29,7 @@ jobs:
           path: gh-push-to-neofs
 
       - name: Test gh-push-to-neofs
-        uses: gh-push-to-neofs
+        uses: ./
         with:
           TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
           TEST_RESULTS_PASSWORD: ${{ secrets.TEST_RESULTS_PASSWORD }}
