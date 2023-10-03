@@ -23,6 +23,7 @@ def parse_args():
     parser.add_argument("--run_id", required=True, type=str, help="GitHub run ID")
     parser.add_argument(
         "--files-dir",
+        required=True,
         type=str,
         help="Path to the directory with the files to be pushed",
     ),
@@ -94,6 +95,11 @@ def push_files_to_neofs(
     password: str,
 ) -> None:
     print("Start push_files_to_neofs()")
+    if not os.path.exists(directory):
+        raise Exception(f"Directory '{directory}' does not exist.")
+    if not os.listdir(directory):
+        raise Exception(f"Directory '{directory}' is empty.")
+
     base_cmd = (
         f"NEOFS_CLI_PASSWORD={password} neofs-cli --rpc-endpoint {neofs_domain}:8080 "
         f"--wallet {wallet}  object put --cid {cid} --timeout {PUT_TIMEOUT}s"
