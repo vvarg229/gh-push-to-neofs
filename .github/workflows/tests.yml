@@ -23,6 +23,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 500
     steps:
+      - name: Get the current date
+        id: date
+        shell: bash
+        run: echo "::set-output name=timestamp::$(date +%s)"
+
+      - name: Set RUN_ID
+        shell: bash
+        env:
+          TIMESTAMP: ${{ steps.date.outputs.timestamp }}
+        run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
+
       - name: Checkout gh-push-to-neofs
         uses: actions/checkout@v4
 
@@ -45,3 +56,4 @@ jobs:
           MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
           OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
           PATH_TO_FILES_DIR: './tests'
+          RUN_ID: ${{ env.RUN_ID }}
