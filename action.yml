@@ -89,7 +89,6 @@ runs:
         TEST_RESULTS_WALLET: ${{ inputs.TEST_RESULTS_WALLET }}
       run: |
         echo "$TEST_RESULTS_WALLET" | base64 -d > wallet.json
-      working-directory: neofs
 
     - name: Define expiration
       shell: bash
@@ -113,7 +112,6 @@ runs:
           EXP_EPOCH=$((OTHER_EXPIRATION_PERIOD + CURRENT_EPOCH))
         fi
         echo "EXP_EPOCH=$EXP_EPOCH" >> $GITHUB_ENV
-      working-directory: neofs
 
     - name: Prepare test environment
       shell: bash
@@ -138,4 +136,3 @@ runs:
         --neofs_domain $TEST_RESULTS_NEOFS_NETWORK_DOMAIN --run_id $RUN_ID --cid $TEST_RESULTS_CID \
         --files-dir ${GITHUB_WORKSPACE}/allure-report --wallet wallet.json
         echo "container_url=https://"$TEST_RESULTS_HTTP_GATE"/"$TEST_RESULTS_CID"/"$RUN_ID" >> "$GITHUB_OUTPUT"
-      working-directory: neofs
