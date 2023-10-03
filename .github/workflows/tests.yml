@@ -1,0 +1,46 @@
+name: Run automated system tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - support/**
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**/*.md'
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      neofs_node_ref:
+        description: 'Neofs-node ref. Default ref - latest master. Examples: v0.36.0, 8fdcc6d7e798e6511be8806b81894622e72d7fdc, branch_name'
+        required: false
+        default: ''
+
+permissions: write-all
+
+jobs:
+  run_system_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 500
+    steps:
+      - name: Checkout gh-push-to-neofs
+        uses: actions/checkout@v4
+
+      - name: Test gh-push-to-neofs
+        uses: .
+        with:
+          TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
+          TEST_RESULTS_PASSWORD: ${{ secrets.TEST_RESULTS_PASSWORD }}
+          TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ vars.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
+          TEST_RESULTS_HTTP_GATE: ${{ vars.TEST_RESULTS_HTTP_GATE }}
+          TEST_RESULTS_CID: ${{ vars.TEST_RESULTS_CID }}
+          PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
+          MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
+          MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
+          OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
+          PATH_TO_FILES_DIR: './tests'
