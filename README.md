@@ -9,7 +9,7 @@
   <a href="https://fs.neo.org">NeoFS</a> is a decentralized distributed object storage integrated with the <a href="https://neo.org">NEO Blockchain</a>.
 </p>
 
-# GitHub Action to Publish Static Page to NeoFS
+# GitHub Action to Publish to NeoFS
 
 # Configuration
 
@@ -20,22 +20,18 @@ It is very important to use SECRETS and NOT variables, otherwise your wallet, pa
 | Key                     | Value                                                                                                | Required | Default |
 |-------------------------|------------------------------------------------------------------------------------------------------|----------|---------|
 | `TEST_RESULTS_WALLET`   | N3 wallet. The output of this command should be here: 'cat wallet.json &#124; json_pp &#124; base64' | **Yes**  | N/A     |
-| `TEST_RESULTS_PASSWORD` | Wallet password                                                                                      | **Yes**  | N/A     |
+| `TEST_RESULTS_PASSWORD` | N3 wallet password                                                                                   | **Yes**  | N/A     |
+
+Please keep sensitive data safe.
 
 ## GitHub environment variables
-The following settings must be passed as [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
-
-
-| Key                                 | Value                                                                                 | Required | Default            |
-|-------------------------------------|---------------------------------------------------------------------------------------|----------|--------------------|
-| `TEST_RESULTS_NEOFS_NETWORK_DOMAIN` | Rpc endpoint domain address                                                           | **No**   | st1.t5.fs.neo.org  |
-| `TEST_RESULTS_HTTP_GATE`            | HTTP Gateway domain address                                                           | **No**   | http.t5.fs.neo.org |
-| `TEST_RESULTS_CID`                  | Container ID for your data. For example: 7gHG4HB3BrpFcH9BN3KMZg6hEETx4mFP71nEoNXHFqrv | **Yes**  | N/A                |
 
 ### NeoFS network environment variables
+The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
+
 Up-to-date information on the NeoFS network can be viewed on https://status.fs.neo.org.
 
-If you are using the NeoFS mainnet, we recommend that you do not change these environment variables.
+If you are using the NeoFS mainnet, we recommend that you do not change `TEST_RESULTS_NEOFS_NETWORK_DOMAIN` and `TEST_RESULTS_HTTP_GATE` environment variables.
 
 | Key                                 | Value                                                                                 | Required | Default            |
 |-------------------------------------|---------------------------------------------------------------------------------------|----------|--------------------|
@@ -44,8 +40,17 @@ If you are using the NeoFS mainnet, we recommend that you do not change these en
 | `TEST_RESULTS_CID`                  | Container ID for your data. For example: 7gHG4HB3BrpFcH9BN3KMZg6hEETx4mFP71nEoNXHFqrv | **Yes**  | N/A                |
 
 
+### Path to files directory environment variables
+The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
+
+| Key                    | Value                                                                                                       | Required | Default |
+|------------------------|-------------------------------------------------------------------------------------------------------------|----------|---------|
+| `PATH_TO_FILES_DIR`    | Path to the directory with the files to be pushed                                                           | **Yes**  | N/A     |
+
 ### Expiration period environment variables
-These environment variables are responsible for the storage time of the results in the storage network in HOURS.
+The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
+
+These environment variables are responsible for the storage time of the results in the storage network in epochs (in the mainnet, an epoch is approximately equal to one hour, so we can assume that values are specified in HOURS).
 
 After the period is over, the data will be deleted. They are convenient to use for log rotation or test reports.
 
@@ -61,7 +66,39 @@ For results from releases, there is no expiration date, they will be stored unti
 | `MANUAL_RUN_EXPIRATION_PERIOD` | Expiration period for artifacts created as a result of [manually run](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch)         | **No**   | 0       |
 | `OTHER_EXPIRATION_PERIOD`      | Expiration period for artifacts created as a result of other events                                                                                                               | **No**   | 0       |
 
+## Output container URL environment variables
+The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
+
+| Key                    | Value                                                                                                       | Required | Default |
+|------------------------|-------------------------------------------------------------------------------------------------------------|----------|---------|
+| `OUTPUT_CONTAINER_URL` | Output example: https://http.storage.fs.neo.org/HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6/872-1696332227 | **No**   | N/A     |
+
 
 # Examples
+
+```yml
+name: Publish to NeoFS
+on:
+  push:
+    branches: [ master ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish to NeoFS
+        uses: nspcc-dev/gh-push-to-neofs@master
+        with:
+          TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
+          TEST_RESULTS_PASSWORD: ${{ secrets.TEST_RESULTS_PASSWORD }}
+          TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ vars.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
+          TEST_RESULTS_HTTP_GATE: ${{ vars.TEST_RESULTS_HTTP_GATE }}
+          TEST_RESULTS_CID: ${{ vars.TEST_RESULTS_CID }}
+          PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
+          MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
+          MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
+          OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
+          PATH_TO_FILES_DIR: ${{ env.PATH_TO_FILES_DIR }}
+```
 
 ## How to store Allure report to NeoFS as static page
