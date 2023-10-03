@@ -91,7 +91,7 @@ runs:
         MANUAL_RUN_EXPIRATION_PERIOD: ${{ inputs.MANUAL_RUN_EXPIRATION_PERIOD }}
         OTHER_EXPIRATION_PERIOD: ${{ inputs.OTHER_EXPIRATION_PERIOD }}
       run: |
-        CURRENT_EPOCH=$(neofs-cli netmap epoch --rpc-endpoint st1.$TEST_RESULTS_NEOFS_NETWORK_DOMAIN:8080)
+        CURRENT_EPOCH=$(neofs-cli netmap epoch --rpc-endpoint $TEST_RESULTS_NEOFS_NETWORK_DOMAIN:8080)
         if [[ "${{ github.event_name }}" == "push" ]]; then
           EXP_EPOCH=$((MASTER_EXPIRATION_PERIOD + CURRENT_EPOCH))
         elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
