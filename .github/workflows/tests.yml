@@ -1,0 +1,75 @@
+name: Run automated tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - support/**
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**/*.md'
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  run_system_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 500
+    steps:
+      - name: Get the current date
+        id: date
+        shell: bash
+        run: echo "::set-output name=timestamp::$(date +%s)"
+
+      - name: Set RUN_ID
+        shell: bash
+        env:
+          TIMESTAMP: ${{ steps.date.outputs.timestamp }}
+        run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
+
+      - name: Checkout gh-push-to-neofs
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.6'
+      - run: python --version
+
+      - name: Run gh-push-to-neofs
+        id: gh_push_to_neofs
+        uses: ./
+        with:
+          NEOFS_WALLET: ${{ secrets.NEOFS_WALLET }}
+          NEOFS_WALLET_PASSWORD: ${{ secrets.NEOFS_WALLET_PASSWORD }}
+          NEOFS_NETWORK_DOMAIN: ${{ vars.NEOFS_NETWORK_DOMAIN }}
+          NEOFS_HTTP_GATE: ${{ vars.NEOFS_HTTP_GATE }}
+          STORE_OBJECTS_CID: ${{ vars.STORE_OBJECTS_CID }}
+          PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
+          MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
+          MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
+          OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
+          PATH_TO_FILES_DIR: './tests/data'
+          RUN_ID: ${{ env.RUN_ID }}
+
+      - name: Prepare venv
+        shell: bash
+        id: prepare_venv
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate && pip install -r requirements.txt
+        working-directory: ./tests
+
+      - name: Run tests
+        env:
+          OUTPUT_CONTAINER_URL: ${{ steps.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL }}
+        run: |
+          source venv/bin/activate && pytest test_downloads.py --base_url="$OUTPUT_CONTAINER_URL"
+        working-directory: ./tests
