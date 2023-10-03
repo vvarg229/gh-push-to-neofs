@@ -129,5 +129,7 @@ runs:
         echo "TEST_RESULTS_CID=$TEST_RESULTS_CID"
         echo "TEST_RESULTS_HTTP_GATE=$TEST_RESULTS_HTTP_GATE"
         echo "RUN_ID=$RUN_ID"
-        source venv/bin/activate && NEOFS_CLI_PASSWORD=$TEST_RESULTS_PASSWORD python ./push-to-neofs.py --expire-at "$EXP_EPOCH" --neofs_domain "$TEST_RESULTS_NEOFS_NETWORK_DOMAIN" --run_id "$RUN_ID" --cid "$TEST_RESULTS_CID" --files-dir "${GITHUB_WORKSPACE}/allure-report" --wallet wallet.json
+        source venv/bin/activate && NEOFS_CLI_PASSWORD=$TEST_RESULTS_PASSWORD python ./push-to-neofs.py \
+        --expire-at "$EXP_EPOCH" --neofs_domain "$TEST_RESULTS_NEOFS_NETWORK_DOMAIN" --run_id "$RUN_ID" \
+        --cid "$TEST_RESULTS_CID" --files-dir "$PATH_TO_FILES_DIR" --wallet wallet.json
         echo "::set-output name=container_url::https://$TEST_RESULTS_HTTP_GATE/$TEST_RESULTS_CID/$RUN_ID"
