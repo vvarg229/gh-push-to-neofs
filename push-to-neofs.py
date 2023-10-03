@@ -93,23 +93,30 @@ def push_files_to_neofs(
     expire_at: int,
     password: str,
 ) -> None:
+    print("Start push_files_to_neofs()")
     base_cmd = (
         f"NEOFS_CLI_PASSWORD={password} neofs-cli --rpc-endpoint {neofs_domain}:8080 "
         f"--wallet {wallet}  object put --cid {cid} --timeout {PUT_TIMEOUT}s"
     )
+    print(f"Base cmd: {base_cmd}")
 
     if expire_at is not None and expire_at > 0:
         base_cmd += f" --expire-at {expire_at}"
+    print(f"Base cmd with expire-at: {base_cmd}")
 
     for subdir, dirs, files in os.walk(directory):
         current_dir_name = os.path.basename(subdir)
         neofs_path_attr = change_root_dir_to_container_id(
             directory, current_dir_name, run_id
         )
+        print(f"neofs_path_attr: {neofs_path_attr}")
 
         for filename in files:
+            print(f"Filename: {filename}")
             filepath = os.path.join(subdir, filename)
+            print(f"Filepath: {filepath}")
             mime_type = magic.from_file(filepath, mime=True)
+            print(f"Mime type: {mime_type}")
             base_cmd_with_file = (
                 f"{base_cmd} --file {filepath} --attributes {RUN_NUMBER}={run_id},"
                 f"{FILE_PATH}={neofs_path_attr}/{filename},{CONTENT_TYPE}={mime_type}"
