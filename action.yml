@@ -61,12 +61,6 @@ runs:
         TIMESTAMP: ${{ steps.date.outputs.timestamp }}
       run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
 
-    - name: Set up Python
-      shell: sh
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11.6'
-
     - name: Download latest stable neofs-cli for uploading reports to NeoFS
       uses: dsaltares/fetch-gh-release-asset@1.1.1
       with:
