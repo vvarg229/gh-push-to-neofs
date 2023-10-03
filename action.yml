@@ -124,8 +124,5 @@ runs:
         TEST_RESULTS_HTTP_GATE: ${{ inputs.TEST_RESULTS_HTTP_GATE }}
         RUN_ID: ${{ inputs.RUN_ID }}
       run: |
-        source venv/bin/activate && NEOFS_CLI_PASSWORD=$TEST_RESULTS_PASSWORD python ./push-to-neofs.py \
-        --expire-at $EXP_EPOCH \
-        --neofs_domain $TEST_RESULTS_NEOFS_NETWORK_DOMAIN --run_id $RUN_ID --cid $TEST_RESULTS_CID \
-        --files-dir ${GITHUB_WORKSPACE}/allure-report --wallet wallet.json
+        source venv/bin/activate && NEOFS_CLI_PASSWORD=$TEST_RESULTS_PASSWORD python ./push-to-neofs.py --expire-at $EXP_EPOCH --neofs_domain $TEST_RESULTS_NEOFS_NETWORK_DOMAIN --run_id $RUN_ID --cid $TEST_RESULTS_CID --files-dir ${GITHUB_WORKSPACE}/allure-report --wallet wallet.json
         echo "container_url=https://"$TEST_RESULTS_HTTP_GATE"/"$TEST_RESULTS_CID"/"$RUN_ID" >> "$GITHUB_OUTPUT"
