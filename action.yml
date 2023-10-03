@@ -122,6 +122,7 @@ runs:
         TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ inputs.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
         TEST_RESULTS_CID: ${{ inputs.TEST_RESULTS_CID }}
         TEST_RESULTS_HTTP_GATE: ${{ inputs.TEST_RESULTS_HTTP_GATE }}
+        PATH_TO_FILES_DIR: ${{ inputs.PATH_TO_FILES_DIR }}
         RUN_ID: ${{ inputs.RUN_ID }}
       run: |
         echo "TEST_RESULTS_PASSWORD=$TEST_RESULTS_PASSWORD"
