@@ -40,12 +40,13 @@ If you are using the NeoFS mainnet, we recommend that you do not change `TEST_RE
 | `TEST_RESULTS_CID`                  | Container ID for your data. For example: 7gHG4HB3BrpFcH9BN3KMZg6hEETx4mFP71nEoNXHFqrv | **Yes**  | N/A                |
 
 
-### Path to files directory environment variables
+### Workflow environment variables
 The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
 
-| Key                    | Value                                                                                                       | Required | Default |
-|------------------------|-------------------------------------------------------------------------------------------------------------|----------|---------|
-| `PATH_TO_FILES_DIR`    | Path to the directory with the files to be pushed                                                           | **Yes**  | N/A     |
+| Key                 | Value                                                                                                                                                                                                                                                                      | Required | Default |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------|
+| `PATH_TO_FILES_DIR` | Path to the directory with the files to be pushed                                                                                                                                                                                                                          | **Yes**  | N/A     |
+| `RUN_ID`            | GitHub run ID. The ID will be a unique part of the URL address. If a new file with the same name is uploaded to the same container and with the same ID, the new file will replace the old one. We recommend using a combination of github.run_number, start time, and sha | **Yes**  | N/A     |
 
 ### Expiration period environment variables
 The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
@@ -111,6 +112,16 @@ jobs:
   push-to-neofs:
     runs-on: ubuntu-latest
     steps:
+      - name: Get the current date
+        id: date
+        shell: bash
+        run: echo "::set-output name=timestamp::$(date +%s)"
+
+      - name: Set RUN_ID
+        shell: bash
+        env:
+          TIMESTAMP: ${{ steps.date.outputs.timestamp }}
+        run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -138,6 +149,7 @@ jobs:
           MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
           OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
           PATH_TO_FILES_DIR: ${{ env.PATH_TO_FILES_DIR }}
+          RUN_ID: ${{ env.RUN_ID }}
 ```
 
 ## How to store Allure report to NeoFS as static page
