@@ -123,7 +123,6 @@ runs:
         ls -la
         ls -la ..
         source venv/bin/activate && pip install -r requirements.txt
-      working-directory: neofs
 
     - name: Put files to NeoFS
       shell: bash
