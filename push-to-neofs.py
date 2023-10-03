@@ -19,7 +19,7 @@ def parse_args():
     )
     parser.add_argument("--wallet", required=True, type=str, help="Path to the wallet")
     parser.add_argument("--cid", required=True, type=str, help="Container ID")
-    parser.add_argument("--run-id", required=True, type=str, help="GitHub run ID")
+    parser.add_argument("--run_id", required=True, type=str, help="GitHub run ID")
     parser.add_argument(
         "--files-dir",
         type=str,
