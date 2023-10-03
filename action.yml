@@ -86,7 +86,7 @@ runs:
     - name: Create wallet
       shell: sh
       env:
-        TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
+        TEST_RESULTS_WALLET: ${{ inputs.TEST_RESULTS_WALLET }}
       run: |
         echo "$TEST_RESULTS_WALLET" | base64 -d > wallet.json
       working-directory: neofs
@@ -127,7 +127,7 @@ runs:
       shell: sh
       id: put_files
       env:
-        TEST_RESULTS_PASSWORD: ${{ secrets.TEST_RESULTS_PASSWORD }}
+        TEST_RESULTS_PASSWORD: ${{ inputs.TEST_RESULTS_PASSWORD }}
         TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ inputs.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
         TEST_RESULTS_CID: ${{ inputs.TEST_RESULTS_CID }}
         TEST_RESULTS_HTTP_GATE: ${{ inputs.TEST_RESULTS_HTTP_GATE }}
