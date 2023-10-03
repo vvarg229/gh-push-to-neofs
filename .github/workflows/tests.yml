@@ -15,11 +15,6 @@ on:
     types:
       - published
   workflow_dispatch:
-    inputs:
-      neofs_node_ref:
-        description: 'Neofs-node ref. Default ref - latest master. Examples: v0.36.0, 8fdcc6d7e798e6511be8806b81894622e72d7fdc, branch_name'
-        required: false
-        default: ''
 
 permissions: write-all
 
@@ -30,9 +25,11 @@ jobs:
     steps:
       - name: Checkout gh-push-to-neofs
         uses: actions/checkout@v4
+        with:
+          path: gh-push-to-neofs
 
       - name: Test gh-push-to-neofs
-        uses: .
+        uses: gh-push-to-neofs
         with:
           TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
           TEST_RESULTS_PASSWORD: ${{ secrets.TEST_RESULTS_PASSWORD }}
