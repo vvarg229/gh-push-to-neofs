@@ -10,6 +10,7 @@ PUT_TIMEOUT = 600  # in seconds
 
 
 def parse_args():
+    print("Start parse_args()")
     parser = argparse.ArgumentParser(description="Process allure reports")
     parser.add_argument(
         "--neofs_domain",
@@ -36,6 +37,7 @@ def parse_args():
 
 
 def get_password() -> str:
+    print("Start get_password()")
     password = os.getenv("TEST_RESULTS_PASSWORD")
     return password
 
@@ -140,6 +142,7 @@ def push_files_to_neofs(
 
 
 if __name__ == "__main__":
+    print("Start push-to-neofs.py")
     args = parse_args()
     neofs_password = get_password()
 
@@ -152,3 +155,4 @@ if __name__ == "__main__":
         args.expire_at,
         neofs_password,
     )
+    print("End push-to-neofs.py")
