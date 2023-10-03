@@ -25,6 +25,9 @@ inputs:
   PATH_TO_FILES_DIR:
     description: Path to the directory with the files to be pushed
     required: true
+  RUN_ID:
+    description: Run ID
+    required: true
   PR_EXPIRATION_PERIOD:
     description: Expiration period for PRs in epochs
     required: false
@@ -50,17 +53,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Get the current date
-      id: date
-      shell: bash
-      run: echo "::set-output name=timestamp::$(date +%s)"
-
-    - name: Set RUN_ID
-      shell: bash
-      env:
-        TIMESTAMP: ${{ steps.date.outputs.timestamp }}
-      run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
-
     - name: Download latest stable neofs-cli for uploading reports to NeoFS
       uses: dsaltares/fetch-gh-release-asset@1.1.1
       with:
@@ -130,6 +122,7 @@ runs:
         TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ inputs.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
         TEST_RESULTS_CID: ${{ inputs.TEST_RESULTS_CID }}
         TEST_RESULTS_HTTP_GATE: ${{ inputs.TEST_RESULTS_HTTP_GATE }}
+        RUN_ID: ${{ inputs.RUN_ID }}
       run: |
         source venv/bin/activate && NEOFS_CLI_PASSWORD=$TEST_RESULTS_PASSWORD python ./push-to-neofs.py \
         --expire-at $EXP_EPOCH \
