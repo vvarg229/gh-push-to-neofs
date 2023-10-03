@@ -4,16 +4,70 @@ author: 'KeithWeaver'
 branding:
   icon: 'server'
   color: 'green'
+inputs:
+  TEST_RESULTS_WALLET:
+    description: N3 wallet for NeoFS network access
+    required: true
+  TEST_RESULTS_PASSWORD:
+    description: N3 wallet password
+    required: true
+  TEST_RESULTS_NEOFS_NETWORK_DOMAIN:
+    description: Rpc endpoint domain address
+    required: false
+    default: 'st1.t5.fs.neo.org'
+  TEST_RESULTS_HTTP_GATE:
+    description: HTTP Gateway domain address
+    required: false
+    default: 'http.t5.fs.neo.org'
+  TEST_RESULTS_CID:
+    description: Container ID for your data
+    required: true
+  PATH_TO_FILES_DIR:
+    description: Path to the directory with the files to be pushed
+    required: true
+  PR_EXPIRATION_PERIOD:
+    description: Expiration period for PRs in epochs
+    required: false
+    default: 0
+  MASTER_EXPIRATION_PERIOD:
+    description: Expiration period for master branch in epochs
+    required: false
+    default: 0
+  MANUAL_RUN_EXPIRATION_PERIOD:
+    description: Expiration period for manual runs in epochs
+    required: false
+    default: 0
+  OTHER_EXPIRATION_PERIOD:
+    description: Expiration period for other events in epochs
+    required: false
+    default: 0
+
+outputs:
+  OUTPUT_CONTAINER_URL:
+    description: Container URL
+    value: ${{ steps.put_files.outputs.container_url }}
+
 runs:
   using: composite
   steps:
+    - name: Get the current date
+      id: date
+      shell: sh
+      run: echo "::set-output name=timestamp::$(date +%s)"
+
+    - name: Set RUN_ID
+      shell: sh
+      env:
+        TIMESTAMP: ${{ steps.date.outputs.timestamp }}
+      run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
+
     - name: Download latest stable neofs-cli for uploading reports to NeoFS
       uses: dsaltares/fetch-gh-release-asset@1.1.1
       with:
         repo: 'nspcc-dev/neofs-node'
         version: 'tags/v0.38.1'
         file: 'neofs-cli-amd64'
-        target: 'neofs-node-stable/neofs-cli'
+        target: 'neofs/neofs-cli'
 
     - name: Chmod latest stable neofs-cli
       shell: sh
@@ -31,7 +85,6 @@ runs:
 
     - name: Create wallet
       shell: sh
-      if: always()
       env:
         TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
       run: |
@@ -40,13 +93,12 @@ runs:
 
     - name: Define expiration
       shell: sh
-      if: always()
       env:
-        TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ vars.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
-        MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
-        PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
-        MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
-        OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
+        TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ inputs.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
+        MASTER_EXPIRATION_PERIOD: ${{ inputs.MASTER_EXPIRATION_PERIOD }}
+        PR_EXPIRATION_PERIOD: ${{ inputs.PR_EXPIRATION_PERIOD }}
+        MANUAL_RUN_EXPIRATION_PERIOD: ${{ inputs.MANUAL_RUN_EXPIRATION_PERIOD }}
+        OTHER_EXPIRATION_PERIOD: ${{ inputs.OTHER_EXPIRATION_PERIOD }}
       run: |
         CURRENT_EPOCH=$(neofs-cli netmap epoch --rpc-endpoint st1.$TEST_RESULTS_NEOFS_NETWORK_DOMAIN:8080)
         if [[ "${{ github.event_name }}" == "push" ]]; then
@@ -76,10 +128,13 @@ runs:
       id: put_files
       env:
         TEST_RESULTS_PASSWORD: ${{ secrets.TEST_RESULTS_PASSWORD }}
-        TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ vars.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
-        TEST_RESULTS_CID: ${{ vars.TEST_RESULTS_CID }}
+        TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ inputs.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
+        TEST_RESULTS_CID: ${{ inputs.TEST_RESULTS_CID }}
+        TEST_RESULTS_HTTP_GATE: ${{ inputs.TEST_RESULTS_HTTP_GATE }}
       run: |
-        source venv.local-pytest/bin/activate && python ./push-to-neofs.py --expire-at $EXP_EPOCH \
+        source venv.local-pytest/bin/activate && NEOFS_CLI_PASSWORD=$TEST_RESULTS_PASSWORD python ./push-to-neofs.py \
+        --expire-at $EXP_EPOCH \
         --neofs_domain $TEST_RESULTS_NEOFS_NETWORK_DOMAIN --run_id $RUN_ID --cid $TEST_RESULTS_CID \
         --files-dir ${GITHUB_WORKSPACE}/allure-report --wallet wallet.json
+        echo "container_url=https://"$TEST_RESULTS_HTTP_GATE"/"$TEST_RESULTS_CID"/"$RUN_ID" >> "$GITHUB_OUTPUT"
       working-directory: neofs
