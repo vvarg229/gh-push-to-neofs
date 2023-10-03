@@ -73,6 +73,32 @@ The following variables must be passed as [GitHub Actions vars context](https://
 |------------------------|-------------------------------------------------------------------------------------------------------------|----------|---------|
 | `OUTPUT_CONTAINER_URL` | Output example: https://http.storage.fs.neo.org/HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6/872-1696332227 | **No**   | N/A     |
 
+# Dependencies
+
+## Python
+The GitHub runner must have python at least version 3.11 installed on it.
+
+You can install Python like this:
+```yml
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: '3.11.6'
+```
+
+## NeoFS CLI
+The GitHub runner must have NeoFS CLI installed on it.
+
+You can install NeoFS CLI like this:
+```yml
+- name: Download latest stable neofs-cli for uploading reports to NeoFS
+  uses: dsaltares/fetch-gh-release-asset@1.1.1
+  with:
+    repo: 'nspcc-dev/neofs-node'
+    version: 'tags/v0.37.0'
+    file: 'neofs-cli-amd64'
+    target: 'neofs/neofs-cli'
+```
 
 # Examples
 
@@ -82,9 +108,22 @@ on:
   push:
     branches: [ master ]
 jobs:
-  deploy:
+  push-to-neofs:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.6'
+          
+      - name: Download latest stable neofs-cli for uploading reports to NeoFS
+        uses: dsaltares/fetch-gh-release-asset@1.1.1
+        with:
+          repo: 'nspcc-dev/neofs-node'
+          version: 'tags/v0.37.0'
+          file: 'neofs-cli-amd64'
+          target: 'neofs/neofs-cli'
+  
       - uses: actions/checkout@v4
       - name: Publish to NeoFS
         uses: nspcc-dev/gh-push-to-neofs@master
