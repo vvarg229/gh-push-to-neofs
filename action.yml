@@ -52,11 +52,11 @@ runs:
   steps:
     - name: Get the current date
       id: date
-      shell: sh
+      shell: bash
       run: echo "::set-output name=timestamp::$(date +%s)"
 
     - name: Set RUN_ID
-      shell: sh
+      shell: bash
       env:
         TIMESTAMP: ${{ steps.date.outputs.timestamp }}
       run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
@@ -70,21 +70,21 @@ runs:
         target: 'neofs/neofs-cli'
 
     - name: Chmod latest stable neofs-cli
-      shell: sh
+      shell: bash
       if: runner.os == 'Linux'
       run: |
         sudo chmod a+x neofs-cli
       working-directory: neofs
 
     - name: Enable stable neofs-cli
-      shell: sh
+      shell: bash
       if: always()
       run: |
         echo "$(pwd)" >> $GITHUB_PATH
       working-directory: neofs
 
     - name: Create wallet
-      shell: sh
+      shell: bash
       env:
         TEST_RESULTS_WALLET: ${{ inputs.TEST_RESULTS_WALLET }}
       run: |
@@ -92,7 +92,7 @@ runs:
       working-directory: neofs
 
     - name: Define expiration
-      shell: sh
+      shell: bash
       env:
         TEST_RESULTS_NEOFS_NETWORK_DOMAIN: ${{ inputs.TEST_RESULTS_NEOFS_NETWORK_DOMAIN }}
         MASTER_EXPIRATION_PERIOD: ${{ inputs.MASTER_EXPIRATION_PERIOD }}
@@ -116,7 +116,7 @@ runs:
       working-directory: neofs
 
     - name: Prepare test environment
-      shell: sh
+      shell: bash
       id: prepare_venv
       run: |
         virtualenv --python=python3.11 venv
@@ -124,7 +124,7 @@ runs:
       working-directory: neofs
 
     - name: Put files to NeoFS
-      shell: sh
+      shell: bash
       id: put_files
       env:
         TEST_RESULTS_PASSWORD: ${{ inputs.TEST_RESULTS_PASSWORD }}
