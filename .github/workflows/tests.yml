@@ -75,6 +75,6 @@ jobs:
           ls
           pwd
           ls ..
-          echo OUTPUT_CONTAINER_URL [${{needs.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}]
-          source venv.local-pytest/bin/activate && pytest test_downloads.py --base_url="OUTPUT_CONTAINER_URL"
+          echo OUTPUT_CONTAINER_URL ${{gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}
+          source venv/bin/activate && pytest test_downloads.py --base_url=${{gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}
         working-directory: ./tests
