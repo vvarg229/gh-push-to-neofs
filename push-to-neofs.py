@@ -84,9 +84,12 @@ def change_root_dir_to_container_id(
     # else:
     #     return os.path.join(run_id, current_directory)
     relative_path = os.path.relpath(current_directory, root_directory)
-    if relative_path == '.':
+    print(f"Relative path: {relative_path}")
+    if relative_path == ".":
+        print(f"Relative path is '.'")
         return run_id
     else:
+        print(f"Relative path is not '.', relative path is: {os.path.join(run_id, relative_path)}")
         return os.path.join(run_id, relative_path)
 
 
