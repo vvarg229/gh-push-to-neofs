@@ -141,7 +141,7 @@ def push_files_to_neofs(
             print(f"Mime type: {mime_type}")
             base_cmd_with_file = (
                 f"{base_cmd} --file {filepath} --attributes {RUN_NUMBER}={run_id},"
-                f"{FILE_PATH}={neofs_path_attr}/{filename},{CONTENT_TYPE}={mime_type}"
+                f"{FILE_PATH}={neofs_path_attr},{CONTENT_TYPE}={mime_type}"
             )
             print(f"Cmd: {base_cmd_with_file}")
 
