@@ -1,4 +1,4 @@
-name: Run automated system tests
+name: Run automated tests
 
 on:
   push:
@@ -43,7 +43,8 @@ jobs:
           python-version: '3.11.6'
       - run: python --version
 
-      - name: Test gh-push-to-neofs
+      - name: Run gh-push-to-neofs
+        id: gh_push_to_neofs
         uses: ./
         with:
           TEST_RESULTS_WALLET: ${{ secrets.TEST_RESULTS_WALLET }}
@@ -55,5 +56,19 @@ jobs:
           MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
           MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
           OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
-          PATH_TO_FILES_DIR: './tests'
+          PATH_TO_FILES_DIR: './tests/data'
           RUN_ID: ${{ env.RUN_ID }}
+
+      - name: Prepare venv
+        shell: bash
+        id: prepare_venv
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate && pip install -r requirements.txt
+        working-directory: ${GITHUB_WORKSPACE}/tests
+
+      - name: Run tests
+        run: |
+          echo OUTPUT_CONTAINER_URL [${{needs.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}]
+          source venv.local-pytest/bin/activate && pytest test_downloads.py --base_url="OUTPUT_CONTAINER_URL"
+        working-directory: ${GITHUB_WORKSPACE}/tests
