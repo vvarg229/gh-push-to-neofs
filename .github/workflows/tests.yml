@@ -63,6 +63,9 @@ jobs:
         shell: bash
         id: prepare_venv
         run: |
+          ls -la
+          pwd
+          ls -la ..
           python3 -m venv venv
           source venv/bin/activate && pip install -r requirements.txt
         working-directory: ${GITHUB_WORKSPACE}/tests
