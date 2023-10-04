@@ -19,6 +19,7 @@ def download_file(url):
         "2.txt",
         "dir/3.txt",
         "dir/subdir/4.txt",
+        "dir/subdir/subdir_2/5.txt",
     ],
 )
 def test_file_content(base_url, path):
