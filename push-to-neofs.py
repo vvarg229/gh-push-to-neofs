@@ -84,13 +84,7 @@ def change_root_dir_to_container_id(
     # else:
     #     return os.path.join(run_id, current_directory)
     relative_path = os.path.relpath(current_directory, root_directory)
-    print(f"Relative path: {relative_path}")
-    if relative_path == ".":
-        print(f"Relative path is '.'")
-        return run_id
-    else:
-        print(f"Relative path is not '.', relative path is: {os.path.join(run_id, relative_path)}")
-        return os.path.join(run_id, relative_path)
+    return os.path.join(run_id, relative_path)
 
 
 def push_files_to_neofs(
@@ -118,10 +112,13 @@ def push_files_to_neofs(
         base_cmd += f" --expire-at {expire_at}"
     print(f"Base cmd with expire-at: {base_cmd}")
 
-    for subdir, dirs, files in os.walk(directory):
+    # for subdir, dirs, files in os.walk(directory):
+    relative_directory = os.path.relpath(directory)
+    for subdir, dirs, files in os.walk(relative_directory):
         current_dir_name = os.path.basename(subdir)
         neofs_path_attr = change_root_dir_to_container_id(
-            directory, current_dir_name, run_id
+            # directory, current_dir_name, run_id
+            directory, subdir, run_id
         )
         print(f"neofs_path_attr: {neofs_path_attr}")
 
