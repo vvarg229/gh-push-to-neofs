@@ -69,6 +69,9 @@ jobs:
 
       - name: Run tests
         run: |
+          ls
+          pwd
+          ls ..
           echo OUTPUT_CONTAINER_URL [${{needs.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}]
           source venv.local-pytest/bin/activate && pytest test_downloads.py --base_url="OUTPUT_CONTAINER_URL"
         working-directory: ${GITHUB_WORKSPACE}/tests
