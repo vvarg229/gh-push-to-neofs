@@ -13,22 +13,22 @@ def download_file(url):
 
 
 @pytest.mark.parametrize(
-    "path, local_path",
+    "path",
     [
-        ("1.txt", "1.txt"),
-        ("2.txt", "2.txt"),
-        ("dir/3.txt", "dir/3.txt"),
-        ("dir/subdir/4.txt", "dir/subdir/4.txt"),
+        "1.txt",
+        "2.txt",
+        "dir/3.txt",
+        "dir/subdir/4.txt",
     ],
 )
-def test_file_content(base_url, path, local_path):
+def test_file_content(base_url, path):
     if base_url is None:
         pytest.skip("base_url is not provided. Provide it using --base_url option.")
 
     remote_content = download_file(f"{base_url}/{path}")
-    with open(os.path.join(DATA_DIR, local_path), "r") as local_file:
+    with open(os.path.join(DATA_DIR, path), "r") as local_file:
         local_content = local_file.read()
 
     assert (
         remote_content == local_content
-    ), f"Contents of {base_url + path} and {local_path} do not match."
+    ), f"Contents of {base_url}/{path} and file {path} do not match."
