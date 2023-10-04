@@ -105,7 +105,7 @@ runs:
         fi
         echo "EXP_EPOCH=$EXP_EPOCH" >> $GITHUB_ENV
 
-    - name: Prepare test environment
+    - name: Prepare venv
       shell: bash
       id: prepare_venv
       run: |
