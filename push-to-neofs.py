@@ -79,10 +79,15 @@ def change_root_dir_to_container_id(
     world of Web 1.0 with hyperlinks.
     Isn't that cool?
     """
-    if current_directory == os.path.basename(root_directory):
+    # if current_directory == os.path.basename(root_directory):
+    #     return run_id
+    # else:
+    #     return os.path.join(run_id, current_directory)
+    relative_path = os.path.relpath(current_directory, root_directory)
+    if relative_path == '.':
         return run_id
     else:
-        return os.path.join(run_id, current_directory)
+        return os.path.join(run_id, relative_path)
 
 
 def push_files_to_neofs(
