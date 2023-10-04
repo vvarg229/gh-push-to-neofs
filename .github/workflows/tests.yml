@@ -72,7 +72,7 @@ jobs:
 
       - name: Run tests
         with:
-          OUTPUT_CONTAINER_URL: ${{gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}
+          OUTPUT_CONTAINER_URL: ${{ steps.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL }}
         run: |
           ls
           pwd
