@@ -44,7 +44,8 @@ def get_password() -> str:
 
 
 def change_root_dir_to_container_id(
-    root_directory: str, current_directory: str, run_id: str
+    # root_directory: str, current_directory: str, run_id: str
+    root_directory: str, filepath: str, run_id: str
 ) -> str:
     """
     The root of the directory is changing to Container ID.
@@ -83,7 +84,11 @@ def change_root_dir_to_container_id(
     #     return run_id
     # else:
     #     return os.path.join(run_id, current_directory)
-    relative_path = os.path.relpath(current_directory, root_directory)
+
+    # relative_path = os.path.relpath(current_directory, root_directory)
+    # return os.path.join(run_id, relative_path)
+
+    relative_path = os.path.relpath(filepath, root_directory)
     return os.path.join(run_id, relative_path)
 
 
@@ -116,15 +121,21 @@ def push_files_to_neofs(
     relative_directory = os.path.relpath(directory)
     for subdir, dirs, files in os.walk(relative_directory):
         current_dir_name = os.path.basename(subdir)
-        neofs_path_attr = change_root_dir_to_container_id(
-            # directory, current_dir_name, run_id
-            directory, subdir, run_id
-        )
-        print(f"neofs_path_attr: {neofs_path_attr}")
+        # neofs_path_attr = change_root_dir_to_container_id(
+        #     # directory, current_dir_name, run_id
+        #     directory, subdir, run_id
+        # )
+        # print(f"neofs_path_attr: {neofs_path_attr}")
 
         for filename in files:
             print(f"Filename: {filename}")
             filepath = os.path.join(subdir, filename)
+
+            neofs_path_attr = change_root_dir_to_container_id(
+                directory, filepath, run_id
+            )
+            print(f"neofs_path_attr: {neofs_path_attr}")
+
             print(f"Filepath: {filepath}")
             mime_type = magic.from_file(filepath, mime=True)
             print(f"Mime type: {mime_type}")
