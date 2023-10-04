@@ -67,8 +67,7 @@ For results from releases, there is no expiration date, they will be stored unti
 | `MANUAL_RUN_EXPIRATION_PERIOD` | Expiration period for artifacts created as a result of [manually run](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch)         | **No**   | 0       |
 | `OTHER_EXPIRATION_PERIOD`      | Expiration period for artifacts created as a result of other events                                                                                                               | **No**   | 0       |
 
-## Output container URL environment variables
-The following variables must be passed as [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values) or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
+## Output
 
 | Key                    | Value                                                                                                       | Required | Default |
 |------------------------|-------------------------------------------------------------------------------------------------------------|----------|---------|
@@ -77,7 +76,7 @@ The following variables must be passed as [GitHub Actions vars context](https://
 # Dependencies
 
 ## Python
-The GitHub runner must have python at least version 3.11 installed on it.
+The GitHub runner must have Python 3 installed on it.
 
 You can install Python like this:
 ```yml
@@ -85,20 +84,6 @@ You can install Python like this:
   uses: actions/setup-python@v4
   with:
     python-version: '3.11.6'
-```
-
-## NeoFS CLI
-The GitHub runner must have NeoFS CLI installed on it.
-
-You can install NeoFS CLI like this:
-```yml
-- name: Download latest stable neofs-cli for uploading reports to NeoFS
-  uses: dsaltares/fetch-gh-release-asset@1.1.1
-  with:
-    repo: 'nspcc-dev/neofs-node'
-    version: 'tags/v0.37.0'
-    file: 'neofs-cli-amd64'
-    target: 'neofs/neofs-cli'
 ```
 
 # Examples
@@ -126,14 +111,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11.6'
-          
-      - name: Download latest stable neofs-cli for uploading reports to NeoFS
-        uses: dsaltares/fetch-gh-release-asset@1.1.1
-        with:
-          repo: 'nspcc-dev/neofs-node'
-          version: 'tags/v0.37.0'
-          file: 'neofs-cli-amd64'
-          target: 'neofs/neofs-cli'
   
       - uses: actions/checkout@v4
       - name: Publish to NeoFS
