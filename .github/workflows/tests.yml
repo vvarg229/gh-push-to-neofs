@@ -71,7 +71,7 @@ jobs:
         working-directory: ./tests
 
       - name: Run tests
-        with:
+        env:
           OUTPUT_CONTAINER_URL: ${{ steps.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL }}
         run: |
           ls
