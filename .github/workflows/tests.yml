@@ -68,7 +68,7 @@ jobs:
           ls -la ..
           python3 -m venv venv
           source venv/bin/activate && pip install -r requirements.txt
-        working-directory: ${GITHUB_WORKSPACE}/tests
+        working-directory: ./tests
 
       - name: Run tests
         run: |
@@ -77,4 +77,4 @@ jobs:
           ls ..
           echo OUTPUT_CONTAINER_URL [${{needs.gh_push_to_neofs.outputs.OUTPUT_CONTAINER_URL}}]
           source venv.local-pytest/bin/activate && pytest test_downloads.py --base_url="OUTPUT_CONTAINER_URL"
-        working-directory: ${GITHUB_WORKSPACE}/tests
+        working-directory: ./tests
