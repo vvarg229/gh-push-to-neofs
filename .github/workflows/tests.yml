@@ -28,11 +28,19 @@ jobs:
         shell: bash
         run: echo "::set-output name=timestamp::$(date +%s)"
 
-      - name: Set RUN_ID
+      - name: Set url prefix
         shell: bash
         env:
           TIMESTAMP: ${{ steps.date.outputs.timestamp }}
-        run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
+        run: |
+          echo "URL_PREFIX=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
+
+      - name: Set attributes
+        shell: bash
+        env:
+          TIMESTAMP: ${{ steps.date.outputs.timestamp }}
+        run: |
+          echo "NEOFS_ATTRIBUTES=RunNumber=${{ github.run_number }}-$TIMESTAMP,Type=action_test_files" >> $GITHUB_ENV
 
       - name: Checkout gh-push-to-neofs
         uses: actions/checkout@v4
@@ -52,12 +60,10 @@ jobs:
           NEOFS_NETWORK_DOMAIN: ${{ vars.NEOFS_NETWORK_DOMAIN }}
           NEOFS_HTTP_GATE: ${{ vars.NEOFS_HTTP_GATE }}
           STORE_OBJECTS_CID: ${{ vars.STORE_OBJECTS_CID }}
-          PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
-          MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
-          MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
-          OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
+          EXPIRATION_PERIOD: ${{ vars.EXPIRATION_PERIOD }}
           PATH_TO_FILES_DIR: './tests/data'
-          RUN_ID: ${{ env.RUN_ID }}
+          NEOFS_ATTRIBUTES: ${{ env.NEOFS_ATTRIBUTES }}
+          URL_PREFIX: ${{ env.URL_PREFIX }}
 
       - name: Prepare venv
         shell: bash
