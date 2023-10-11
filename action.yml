@@ -25,23 +25,14 @@ inputs:
   PATH_TO_FILES_DIR:
     description: Path to the directory with the files to be pushed
     required: true
-  RUN_ID:
-    description: Run ID
-    required: true
-  PR_EXPIRATION_PERIOD:
+  NEOFS_ATTRIBUTES:
+    description: User attributes in form of Key1=Value1,Key2=Value2
+    required: false
+  URL_PREFIX:
+    description: Prefix to the url address for each of the files(objects)
+    required: false
+  EXPIRATION_PERIOD:
     description: Expiration period for PRs in epochs
-    required: false
-    default: 0
-  MASTER_EXPIRATION_PERIOD:
-    description: Expiration period for master branch in epochs
-    required: false
-    default: 0
-  MANUAL_RUN_EXPIRATION_PERIOD:
-    description: Expiration period for manual runs in epochs
-    required: false
-    default: 0
-  OTHER_EXPIRATION_PERIOD:
-    description: Expiration period for other events in epochs
     required: false
     default: 0
 
@@ -86,27 +77,20 @@ runs:
       shell: bash
       env:
         NEOFS_NETWORK_DOMAIN: ${{ inputs.NEOFS_NETWORK_DOMAIN }}
-        MASTER_EXPIRATION_PERIOD: ${{ inputs.MASTER_EXPIRATION_PERIOD }}
-        PR_EXPIRATION_PERIOD: ${{ inputs.PR_EXPIRATION_PERIOD }}
-        MANUAL_RUN_EXPIRATION_PERIOD: ${{ inputs.MANUAL_RUN_EXPIRATION_PERIOD }}
-        OTHER_EXPIRATION_PERIOD: ${{ inputs.OTHER_EXPIRATION_PERIOD }}
+        EXPIRATION_PERIOD: ${{ inputs.EXPIRATION_PERIOD }}
       run: |
-        CURRENT_EPOCH=$(neofs-cli netmap epoch --rpc-endpoint $NEOFS_NETWORK_DOMAIN:8080)
-        if [[ "${{ github.event_name }}" == "push" ]]; then
-          EXP_EPOCH=$((MASTER_EXPIRATION_PERIOD + CURRENT_EPOCH))
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          EXP_EPOCH=$((PR_EXPIRATION_PERIOD + CURRENT_EPOCH))
-        elif [[ "${{ github.event_name }}" == "release" ]]; then
-          EXP_EPOCH=0 # For test reports from releases - no expiration period
-        elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          EXP_EPOCH=$((MANUAL_RUN_EXPIRATION_PERIOD + CURRENT_EPOCH))
-        else
-          EXP_EPOCH=$((OTHER_EXPIRATION_PERIOD + CURRENT_EPOCH))
-        fi
-        if [[ "$EXP_EPOCH" -eq "$CURRENT_EPOCH" ]]; then
-          EXP_EPOCH=0 # 0 is no expiration period
-        fi
-        echo "EXP_EPOCH=$EXP_EPOCH" >> $GITHUB_ENV
+        if [[ "$EXPIRATION_PERIOD" =~ ^[0-9]+$ ]]; then           
+            if [[ "$EXPIRATION_PERIOD" -eq "0" ]]; then
+              EXP_EPOCH=0
+            else
+              CURRENT_EPOCH=$(neofs-cli netmap epoch --rpc-endpoint $NEOFS_NETWORK_DOMAIN:8080)
+              EXP_EPOCH=$((EXPIRATION_PERIOD + CURRENT_EPOCH))
+            fi
+          else
+            echo "Error: EXPIRATION_PERIOD $EXPIRATION_PERIOD is not a valid number."
+            exit 1
+          fi
+          echo "EXP_EPOCH=$EXP_EPOCH" >> $GITHUB_ENV
 
     - name: Prepare venv
       shell: bash
@@ -124,10 +108,11 @@ runs:
         STORE_OBJECTS_CID: ${{ inputs.STORE_OBJECTS_CID }}
         NEOFS_HTTP_GATE: ${{ inputs.NEOFS_HTTP_GATE }}
         PATH_TO_FILES_DIR: ${{ inputs.PATH_TO_FILES_DIR }}
-        RUN_ID: ${{ inputs.RUN_ID }}
+        NEOFS_ATTRIBUTES: ${{ inputs.NEOFS_ATTRIBUTES }}
+        URL_PREFIX: ${{ inputs.URL_PREFIX }}
       run: |
         source venv/bin/activate && NEOFS_CLI_PASSWORD=$NEOFS_WALLET_PASSWORD python ./push-to-neofs.py \
-        --expire-at "$EXP_EPOCH" --neofs_domain "$NEOFS_NETWORK_DOMAIN" --run_id "$RUN_ID" \
-        --cid "$STORE_OBJECTS_CID" --files-dir "$PATH_TO_FILES_DIR" --wallet wallet.json
+        --expire-at "$EXP_EPOCH" --neofs_domain "$NEOFS_NETWORK_DOMAIN" --attributes "$NEOFS_ATTRIBUTES" \
+        --cid "$STORE_OBJECTS_CID" --files-dir "$PATH_TO_FILES_DIR" --url_path_prefix "$URL_PREFIX" --wallet wallet.json
         echo "::set-output name=container_url::https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$RUN_ID"
-        echo "https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$RUN_ID"
+        echo "https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$URL_PREFIX"
