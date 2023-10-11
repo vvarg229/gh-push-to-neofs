@@ -57,10 +57,11 @@ The following variables must be passed as
 [GitHub Actions vars context](https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values)
 or [GitHub Actions environment variables](https://docs.github.com/en/actions/learn-github-actions/variables).
 
-| Key                 | Value                                                                                                                                                                                                                                                                      | Required | Default |
-|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------|
-| `PATH_TO_FILES_DIR` | Path to the directory with the files to be pushed                                                                                                                                                                                                                          | **Yes**  | N/A     |
-| `RUN_ID`            | GitHub run ID. The ID will be a unique part of the URL address. If a new file with the same name is uploaded to the same container and with the same ID, the new file will replace the old one. We recommend using a combination of github.run_number, start time, and sha | **Yes**  | N/A     |
+| Key                 | Value                                                                                                                                                   | Required | Default |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------|
+| `PATH_TO_FILES_DIR` | Path to the directory with the files to be pushed                                                                                                       | **Yes**  | N/A     |
+| `NEOFS_ATTRIBUTES`  | User attributes in form of Key1=Value1,Key2=Value2. By default, each object contains attributes of relative path to the file and MIME type of the file. | **No**   | N/A     |
+| `URL_PREFIX`        | Prefix to the url address for each of the files(objects)                                                                                                | **No**   | N/A     |
 
 ### Expiration period environment variables
 The following variables must be passed as 
@@ -75,14 +76,10 @@ After the period is over, the data will be deleted. They are convenient to use f
 They default to 0, in which case the data will be stored until they are manually deleted.
 We recommend setting a reasonable and convenient for work expiration period, for example, a month (744 hours).
 
-For results from releases, there is no expiration date, they will be stored until they are manually deleted.
 
-| Key                            | Value                                                                                                                                                                             | Required | Default |
-|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------|
-| `PR_EXPIRATION_PERIOD`         | Expiration period for artifacts created as a result of [opening or modifying a PR](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request) | **No**   | 0       |
-| `MASTER_EXPIRATION_PERIOD`     | Expiration period for artifacts created as a result of [master/main branch modification](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push)   | **No**   | 0       |
-| `MANUAL_RUN_EXPIRATION_PERIOD` | Expiration period for artifacts created as a result of [manually run](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch)         | **No**   | 0       |
-| `OTHER_EXPIRATION_PERIOD`      | Expiration period for artifacts created as a result of other events                                                                                                               | **No**   | 0       |
+| Key                 | Value                                    | Required | Default |
+|---------------------|------------------------------------------|----------|---------|
+| `EXPIRATION_PERIOD` | Expiration period for uploaded artifacts | **No**   | 0       |
 
 ## Output
 
@@ -115,17 +112,6 @@ jobs:
   push-to-neofs:
     runs-on: ubuntu-latest
     steps:
-      - name: Get the current date
-        id: date
-        shell: bash
-        run: echo "::set-output name=timestamp::$(date +%s)"
-
-      - name: Set RUN_ID
-        shell: bash
-        env:
-          TIMESTAMP: ${{ steps.date.outputs.timestamp }}
-        run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -140,15 +126,13 @@ jobs:
           NEOFS_NETWORK_DOMAIN: ${{ vars.NEOFS_NETWORK_DOMAIN }}
           NEOFS_HTTP_GATE: ${{ vars.NEOFS_HTTP_GATE }}
           STORE_OBJECTS_CID: ${{ vars.STORE_OBJECTS_CID }}
-          PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
-          MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
-          MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
-          OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
+          EXPIRATION_PERIOD: ${{ vars.EXPIRATION_PERIOD }}
           PATH_TO_FILES_DIR: ${{ env.PATH_TO_FILES_DIR }}
-          RUN_ID: ${{ env.RUN_ID }}
 ```
 
 ## How to store Allure report to NeoFS as static page
+
+See https://github.com/nspcc-dev/gh-push-allure-report-to-neofs for more details.
 
 In the [NeoFS](https://github.com/nspcc-dev/neofs-node) project, we use the following workflow to store the
 [Allure report](https://github.com/allure-framework/allure2) as a static page in the NeoFS mainnet.
@@ -166,84 +150,8 @@ Of course, you can use any other tool to generate the Allure report and convert 
 can use [allure-commandline](https://github.com/allure-framework/allure-npm) or Allure itself according to
 [this](https://github.com/allure-framework/allure2/pull/2072) merged pull request.
 
-```yml
-name: Run tests and publish Allure test report to NeoFS as static page
-on:
-  push:
-    branches: [ master ]
-jobs:
-  push-to-neofs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get the current date
-        id: date
-        shell: bash
-        run: echo "::set-output name=timestamp::$(date +%s)"
-
-      - name: Set RUN_ID
-        shell: bash
-        env:
-          TIMESTAMP: ${{ steps.date.outputs.timestamp }}
-        run: echo "RUN_ID=${{ github.run_number }}-$TIMESTAMP" >> $GITHUB_ENV
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11.6'
-          
-      - name: Run tests
-        timeout-minutes: 480
-        if: github.event_name != 'pull_request'
-        run: |
-          pytest --alluredir=${GITHUB_WORKSPACE}/allure-results pytest_tests/testsuites
-        working-directory: testcases
-        
-      - name: Generate Allure report
-        timeout-minutes: 60
-        uses: simple-elf/allure-report-action@master
-        id: allure-report
-        with:
-          keep_reports: 100000
-          allure_results: allure-results
-          allure_report: allure-report
-          allure_history: allure-history
-          
-      - name: Сonvert Allure report to static page
-        id: allure-report-to-static-page
-        run: |
-          allure-combine ./allure-report \
-          --dest ./comb_report \
-          --remove-temp-files \
-          --auto-create-folders \
-          --ignore-utf8-errors
-          
-      - name: Copy attachments from allure-results to comb_report
-        env:
-            SOURCE_DIR: ${{ github.workspace }}/allure-results/data/attachments/
-            DEST_DIR: ${{ github.workspace }}/comb_report/data/attachments/
-        run: | 
-          mkdir -p "$DEST_DIR"
-          rsync -avm --include='*.zip' -f 'hide,! */' "$SOURCE_DIR" "$DEST_DIR"
-          echo "PATH_TO_FILES_DIR=${{ github.workspace }}/comb_report" >> $GITHUB_ENV
-  
-      - uses: actions/checkout@v4
-      - name: Publish to NeoFS
-        uses: nspcc-dev/gh-push-to-neofs@master
-        with:
-          NEOFS_WALLET: ${{ secrets.NEOFS_WALLET }}
-          NEOFS_WALLET_PASSWORD: ${{ secrets.NEOFS_WALLET_PASSWORD }}
-          NEOFS_NETWORK_DOMAIN: ${{ vars.NEOFS_NETWORK_DOMAIN }}
-          NEOFS_HTTP_GATE: ${{ vars.NEOFS_HTTP_GATE }}
-          STORE_OBJECTS_CID: ${{ vars.STORE_OBJECTS_CID }}
-          PR_EXPIRATION_PERIOD: ${{ vars.PR_EXPIRATION_PERIOD }}
-          MASTER_EXPIRATION_PERIOD: ${{ vars.MASTER_EXPIRATION_PERIOD }}
-          MANUAL_RUN_EXPIRATION_PERIOD: ${{ vars.MANUAL_RUN_EXPIRATION_PERIOD }}
-          OTHER_EXPIRATION_PERIOD: ${{ vars.OTHER_EXPIRATION_PERIOD }}
-          PATH_TO_FILES_DIR: ${{ env.PATH_TO_FILES_DIR }}
-          RUN_ID: ${{ env.RUN_ID }}
-```
-
 The Allure report will be available in a web browser at a link like this:
-https://http.fs.neo.org/86C4P6uJC7gb5n3KkwEGpXRfdczubXyRNW5N9KeJRW73/53-1696453127/complete.html#
+https://http.fs.neo.org/86C4P6uJC7gb5n3KkwEGpXRfdczubXyRNW5N9KeJRW73/53-1696453127/comb_report/complete.html#
 
 Attachments will also be available at the link:
-https://http.fs.neo.org/86C4P6uJC7gb5n3KkwEGpXRfdczubXyRNW5N9KeJRW73/876-1696502182/data/attachments/ce0fa9e280851f32.zip
+https://http.fs.neo.org/86C4P6uJC7gb5n3KkwEGpXRfdczubXyRNW5N9KeJRW73/876-1696502182/comb_report/data/attachments/ce0fa9e280851f32.zip
