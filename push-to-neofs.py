@@ -19,13 +19,34 @@ def parse_args():
     )
     parser.add_argument("--wallet", required=True, type=str, help="Path to the wallet")
     parser.add_argument("--cid", required=True, type=str, help="Container ID")
-    parser.add_argument("--run_id", required=True, type=str, help="GitHub run ID")
+    parser.add_argument(
+        "--attributes",
+        required=False,
+        type=str,
+        help="User attributes in form of Key1=Value1,Key2=Value2"
+        "For example, it's convenient to create url links to access an object via http:"
+        "FilePath=96-1697035975/dir/3.txt"
+        "Type=test_result,Master=true,RUN_ID=96-1697035975",
+        default=None,
+    )
+    parser.add_argument(
+        "--url_path_prefix",
+        required=False,
+        type=str,
+        help="This is a prefix to the url address for each of the files(objects)."
+        "For example, if Container ID is HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6 and"
+        "--url_path_prefix is '96-1697035975', then the url will be: "
+        "  https://http.fs.neo.org/HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6/832-1695916423/file.txt"
+        "Without --url_path_prefix the url will be:"
+        "  https://http.fs.neo.org/HXSaMJXk2g8C14ht8HSi7BBaiYZ1HeWh2xnWPGQCg4H6/file.txt",
+        default=None,
+    )
     parser.add_argument(
         "--files-dir",
         required=True,
         type=str,
         help="Path to the directory with the files to be pushed",
-    ),
+    )
     parser.add_argument(
         "--expire-at",
         type=int,
@@ -84,16 +105,44 @@ def change_root_dir_to_container_id(
 
 
 def push_file(
-    directory: str, subdir: str, filename: str, run_id: str, base_cmd: str
+    directory: str,
+    subdir: str,
+    url_path_prefix: str,
+    filename: str,
+    attributes: str,
+    base_cmd: str,
 ) -> None:
+    print(f"Directory: {directory}")
+    print(f"Subdir: {subdir}")
+    print(f"Url path prefix: {url_path_prefix}")
+    print(f"Filename: {filename}")
+    print(f"Attributes: {attributes}")
+    print(f"Base cmd: {base_cmd}")
+
     filepath = os.path.join(subdir, filename)
-    neofs_path_attr = change_root_dir_to_container_id(directory, filepath, run_id)
+
+    print(f"Filepath: {filepath}")
+
+    # neofs_path_attr = change_root_dir_to_container_id(directory, filepath, run_id)
 
     mime_type = magic.from_file(filepath, mime=True)
-    base_cmd_with_file = (
-        f"{base_cmd} --file {filepath} --attributes {RUN_NUMBER}={run_id},"
-        f"{FILE_PATH}={neofs_path_attr},{CONTENT_TYPE}={mime_type}"
-    )
+
+    relative_path = os.path.relpath(filepath, os.path.dirname(directory))
+    print(f"Relative path: {relative_path}")
+
+    if url_path_prefix is not None:
+        neofs_path_attr = os.path.join(url_path_prefix, relative_path)
+    else:
+        neofs_path_attr = relative_path
+    print(f"Filepath with url_path_prefix: {neofs_path_attr}")
+
+    base_cmd_with_file = f"{base_cmd} --file {filepath} --attributes {FILE_PATH}={neofs_path_attr},{CONTENT_TYPE}={mime_type}"
+    print(f"Base cmd with file: {base_cmd_with_file}")
+
+    if attributes is not None:
+        base_cmd_with_file += f",{attributes}"
+    print(f"Base cmd with file and attributes: {base_cmd_with_file}")
+
     print(f"Neofs cli cmd is: {base_cmd_with_file}")
 
     try:
@@ -126,7 +175,8 @@ def push_files_to_neofs(
     neofs_domain: str,
     wallet: str,
     cid: str,
-    run_id: str,
+    attributes: str,
+    url_path_prefix: str,
     expire_at: int,
     password: str,
 ) -> None:
@@ -142,11 +192,24 @@ def push_files_to_neofs(
     if expire_at is not None and expire_at > 0:
         base_cmd += f" --expire-at {expire_at}"
 
+    print(f"Directory: {directory}")
     relative_directory = os.path.relpath(directory)
-    for subdir, dirs, files in os.walk(relative_directory):
+    url_root = os.path.basename(relative_directory)
+    print(f"Url root: {url_root}")
+    print(f"Relative directory: {relative_directory}")
 
+    base_path = os.path.abspath(directory)
+    for subdir, dirs, files in os.walk(base_path):
         for filename in files:
-            push_file(directory, subdir, filename, run_id, base_cmd)
+            full_path = os.path.join(subdir, filename)
+            relative_from_root = os.path.relpath(full_path, os.path.dirname(base_path))
+            print(relative_from_root)
+
+    for subdir, dirs, files in os.walk(base_path):
+        for filename in files:
+            push_file(
+                base_path, subdir, url_path_prefix, filename, attributes, base_cmd
+            )
 
 
 if __name__ == "__main__":
@@ -158,7 +221,8 @@ if __name__ == "__main__":
         args.neofs_domain,
         args.wallet,
         args.cid,
-        args.run_id,
+        args.attributes,
+        args.url_path_prefix,
         args.expire_at,
         neofs_password,
     )
