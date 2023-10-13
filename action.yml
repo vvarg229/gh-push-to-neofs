@@ -114,5 +114,5 @@ runs:
         source venv/bin/activate && NEOFS_CLI_PASSWORD=$NEOFS_WALLET_PASSWORD python ./push-to-neofs.py \
         --expire-at "$EXP_EPOCH" --neofs_domain "$NEOFS_NETWORK_DOMAIN" --attributes "$NEOFS_ATTRIBUTES" \
         --cid "$STORE_OBJECTS_CID" --files-dir "$PATH_TO_FILES_DIR" --url_path_prefix "$URL_PREFIX" --wallet wallet.json
-        echo "::set-output name=container_url::https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$RUN_ID"
-        echo "https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$URL_PREFIX"
+        echo "::set-output name=container_url::https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$URL_PREFIX/"
+        echo "https://$NEOFS_HTTP_GATE/$STORE_OBJECTS_CID/$URL_PREFIX/"
